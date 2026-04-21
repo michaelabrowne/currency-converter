@@ -6,10 +6,11 @@ on:
       - "v[0-9]*.[0-9]*.[0-9]*"
 
 permissions:
-  contents: write   # required to create GitHub Releases
+  contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  APP_NAME: "Currency Converter"
 
 jobs:
   build:
@@ -37,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-groups
 
-      # ── macOS build ────────────────────────────────────────────────────────
+      # ── macOS ──────────────────────────────────────────────────────────────
       - name: Compile with Nuitka (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -49,21 +50,30 @@ jobs:
             --output-filename=CurrencyConverter \
             --macos-app-name="Currency Converter" \
             --macos-app-version=${{ github.ref_name }} \
+            --macos-app-icon=assets/icon.icns \
             --assume-yes-for-downloads \
             main.py
+
+      - name: Rename & sign app bundle (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # Nuitka names the bundle after the script — normalise to our app name
+          SRC="dist/CurrencyConverter.app"
+          [ -d "$SRC" ] || SRC="dist/main.app"
+          mv "$SRC" "dist/Currency Converter.app"
+          # Ad-hoc sign so macOS accepts the bundle structure
+          codesign --deep --force --sign - "dist/Currency Converter.app"
 
       - name: Package macOS DMG
         if: runner.os == 'macOS'
         run: |
-          APP_PATH="dist/CurrencyConverter.app"
-          [ -d "$APP_PATH" ] || APP_PATH="dist/main.app"
           hdiutil create \
             -volname "Currency Converter" \
-            -srcfolder "$APP_PATH" \
+            -srcfolder "dist/Currency Converter.app" \
             -ov -format UDZO \
             "CurrencyConverter-macOS-${{ github.ref_name }}.dmg"
 
-      # ── Windows build ──────────────────────────────────────────────────────
+      # ── Windows ────────────────────────────────────────────────────────────
       - name: Compile with Nuitka (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -74,6 +84,7 @@ jobs:
             --enable-plugin=pyside6 `
             --output-dir=dist `
             --output-filename=CurrencyConverter `
+            --windows-icon-from-ico=assets/icon.ico `
             --assume-yes-for-downloads `
             main.py
 
@@ -84,7 +95,7 @@ jobs:
           $src = if (Test-Path "dist\CurrencyConverter.dist") { "dist\CurrencyConverter.dist" } else { "dist\main.dist" }
           Compress-Archive -Path $src -DestinationPath "CurrencyConverter-Windows-${{ github.ref_name }}.zip"
 
-      # ── upload to release ─────────────────────────────────────────────────
+      # ── release ────────────────────────────────────────────────────────────
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:

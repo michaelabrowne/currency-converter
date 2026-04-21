@@ -10,4 +10,5 @@ dependencies = [
 [dependency-groups]
 dev = [
     "nuitka>=4.0.8",
+    "pillow>=12.2.0",
 ]
