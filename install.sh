@@ -3,7 +3,6 @@
 # Usage: curl -fsSL https://raw.githubusercontent.com/michaelabrowne/currency-converter/develop/install.sh | bash
 set -euo pipefail
 
-APP_NAME="Currency Converter"
 REPO="michaelabrowne/currency-converter"
 INSTALL_DIR="/Applications"
 
@@ -23,21 +22,42 @@ TMP=$(mktemp -d)
 DMG="$TMP/CurrencyConverter.dmg"
 curl -L --progress-bar "$DOWNLOAD_URL" -o "$DMG"
 
-echo "==> Mounting disk image..."
-MOUNT_POINT=$(hdiutil attach "$DMG" -nobrowse -quiet | grep '/Volumes' | cut -f3-)
+# Detach any existing Currency Converter volumes to avoid macOS auto-numbering
+while IFS= read -r vol; do
+  hdiutil detach "$vol" -quiet 2>/dev/null || true
+done < <(find /Volumes -maxdepth 1 -name "Currency Converter*" -type d 2>/dev/null)
 
-echo "==> Installing to $INSTALL_DIR..."
-rm -rf "$INSTALL_DIR/$APP_NAME.app"
-cp -R "$MOUNT_POINT/$APP_NAME.app" "$INSTALL_DIR/"
+echo "==> Mounting disk image..."
+hdiutil attach "$DMG" -nobrowse > /dev/null 2>&1
+
+# Find the mounted volume (handles auto-numbered names like "Currency Converter 2")
+MOUNT_POINT=$(find /Volumes -maxdepth 1 -name "Currency Converter*" -type d 2>/dev/null | sort | tail -1)
+if [[ -z "$MOUNT_POINT" ]]; then
+  echo "Error: could not find the mounted DMG volume."
+  exit 1
+fi
+
+# Find the .app bundle inside (handles any bundle name)
+APP_BUNDLE=$(find "$MOUNT_POINT" -maxdepth 1 -name "*.app" -type d | head -1)
+if [[ -z "$APP_BUNDLE" ]]; then
+  echo "Error: no .app bundle found inside the DMG."
+  hdiutil detach "$MOUNT_POINT" -quiet
+  exit 1
+fi
+
+APP_NAME=$(basename "$APP_BUNDLE")
+echo "==> Installing $APP_NAME to $INSTALL_DIR..."
+rm -rf "$INSTALL_DIR/$APP_NAME"
+cp -R "$APP_BUNDLE" "$INSTALL_DIR/"
 
 echo "==> Removing quarantine flag..."
-xattr -cr "$INSTALL_DIR/$APP_NAME.app"
+xattr -cr "$INSTALL_DIR/$APP_NAME"
 
 echo "==> Cleaning up..."
 hdiutil detach "$MOUNT_POINT" -quiet
 rm -rf "$TMP"
 
 echo ""
-echo "  Currency Converter installed successfully."
+echo "  $APP_NAME installed successfully."
 echo "  Launching..."
-open "$INSTALL_DIR/$APP_NAME.app"
+open "$INSTALL_DIR/$APP_NAME"
