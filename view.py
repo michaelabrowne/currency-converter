@@ -153,20 +153,20 @@ QSplitter::handle { background: #2d3f55; }
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def _fmt(value: float) -> str:
-    """Format a number using the system locale's separators."""
+def _fmt(value: float, decimals: int = 2) -> str:
+    """Format a number to fixed decimal places using the system locale."""
     loc = QLocale.system()
     dec = loc.decimalPoint()
     grp = loc.groupSeparator()
-
     if value >= 1_000:
-        raw = f"{value:,.2f}"
-        return "".join(
-            dec if c == "." else grp if c == "," else c for c in raw
-        )
-    if value >= 1:
-        return f"{value:.4f}".replace(".", dec)
-    return f"{value:.6f}".replace(".", dec)
+        raw = f"{value:,.{decimals}f}"
+        return "".join(dec if c == "." else grp if c == "," else c for c in raw)
+    return f"{value:.{decimals}f}".replace(".", dec)
+
+
+def _fmt_rate(value: float) -> str:
+    """Format an exchange rate with smart precision (4 dp for >= 1, 6 dp for < 1)."""
+    return _fmt(value, 4 if value >= 1 else 6)
 
 
 def _lbl(text: str, obj_name: str = "", px: int = 0, bold: bool = False) -> QLabel:
@@ -209,10 +209,10 @@ class ResultCard(QFrame):
 
         rates = QLabel(
             f'<span style="color:#475569">Rate: </span>'
-            f'<span style="color:#7c8fac">1 {base} = {_fmt(result.rate)} {result.code}</span>'
+            f'<span style="color:#7c8fac">1 {base} = {_fmt_rate(result.rate)} {result.code}</span>'
             f'<span style="color:#2d3f55"> · </span>'
             f'<span style="color:#475569">Inverse: </span>'
-            f'<span style="color:#7c8fac">1 {result.code} = {_fmt(result.inverse)} {base}</span>'
+            f'<span style="color:#7c8fac">1 {result.code} = {_fmt_rate(result.inverse)} {base}</span>'
         )
         rates.setTextFormat(Qt.TextFormat.RichText)
         f2 = rates.font()
