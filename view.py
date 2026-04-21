@@ -1,7 +1,7 @@
 """MainWindow — all UI widgets and layout. Zero business logic."""
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QLocale, QLocale
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QComboBox,
@@ -153,12 +153,22 @@ QSplitter::handle { background: #2d3f55; }
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+_LOCALE = QLocale()   # system locale — determines decimal/grouping separators
+
 def _fmt(value: float) -> str:
+    """Format a number using the system locale's separators."""
+    dec = _LOCALE.decimalPoint()
+    grp = _LOCALE.groupSeparator()
+
     if value >= 1_000:
-        return f"{value:,.2f}"
+        # Python always formats with ',' grouping and '.' decimal — swap to locale
+        raw = f"{value:,.2f}"
+        return "".join(
+            dec if c == "." else grp if c == "," else c for c in raw
+        )
     if value >= 1:
-        return f"{value:.4f}"
-    return f"{value:.6f}"
+        return f"{value:.4f}".replace(".", dec)
+    return f"{value:.6f}".replace(".", dec)
 
 
 def _lbl(text: str, obj_name: str = "", px: int = 0, bold: bool = False) -> QLabel:
@@ -301,6 +311,7 @@ class MainWindow(QMainWindow):
         amt_col.setSpacing(4)
         amt_col.addWidget(_lbl("Amount", "fieldlabel"))
         self._amount_spin = QDoubleSpinBox()
+        self._amount_spin.setLocale(QLocale(QLocale.Language.English))
         self._amount_spin.setRange(0.0, 1_000_000_000.0)
         self._amount_spin.setValue(100.0)
         self._amount_spin.setDecimals(2)
