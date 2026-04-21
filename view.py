@@ -153,15 +153,15 @@ QSplitter::handle { background: #2d3f55; }
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-_LOCALE = QLocale()   # system locale — determines decimal/grouping separators
-
 def _fmt(value: float) -> str:
-    """Format a number using the system locale's separators."""
-    dec = _LOCALE.decimalPoint()
-    grp = _LOCALE.groupSeparator()
+    """Format a number using the system locale's separators.
+    QLocale() is called here (not at import time) so QApplication exists first.
+    """
+    loc = QLocale()
+    dec = loc.decimalPoint()
+    grp = loc.groupSeparator()
 
     if value >= 1_000:
-        # Python always formats with ',' grouping and '.' decimal — swap to locale
         raw = f"{value:,.2f}"
         return "".join(
             dec if c == "." else grp if c == "," else c for c in raw
