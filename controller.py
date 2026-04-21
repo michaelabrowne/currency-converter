@@ -18,11 +18,9 @@ class AppController:
         self._model.loading_changed.connect(self._view.set_loading)
 
     def _on_convert(self, amount: float, base: str, targets: list[str]) -> None:
-        if not targets:
-            self._view.show_error("Select at least one target currency.")
-            return
+        # Silently drop the base currency if it somehow appears in targets
         filtered = [t for t in targets if t != base]
         if not filtered:
-            self._view.show_error("Target currencies must differ from the source.")
+            self._view.show_error("Select at least one target currency.")
             return
         self._model.fetch(base, amount, filtered)

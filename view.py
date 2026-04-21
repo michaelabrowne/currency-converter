@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from model import CURRENCIES, ConversionResult
+from model import CURRENCIES, DEFAULT_CURRENCY, ConversionResult
 
 # ── stylesheet ────────────────────────────────────────────────────────────────
 
@@ -314,6 +314,12 @@ class MainWindow(QMainWindow):
         self._base_combo = QComboBox()
         for code, name in CURRENCIES:
             self._base_combo.addItem(f"{code}  {name}", code)
+        default_idx = next(
+            (i for i in range(self._base_combo.count())
+             if self._base_combo.itemData(i) == DEFAULT_CURRENCY), 0
+        )
+        self._base_combo.setCurrentIndex(default_idx)
+        self._base_combo.currentIndexChanged.connect(self._on_base_changed)
         from_col.addWidget(self._base_combo)
         row.addLayout(from_col, 4)
 
@@ -334,7 +340,7 @@ class MainWindow(QMainWindow):
 
         # Currency checklist
         self._list = QListWidget()
-        defaults = {"EUR", "GBP", "SGD"}
+        defaults = {"USD", "GBP", "JPY"}
         for code, name in CURRENCIES:
             item = QListWidgetItem(f"  {code}   {name}")
             item.setData(Qt.ItemDataRole.UserRole, code)
@@ -344,6 +350,9 @@ class MainWindow(QMainWindow):
             )
             self._list.addItem(item)
         lo.addWidget(self._list, stretch=1)
+
+        # Hide the default "From" currency from the checklist on startup
+        self._on_base_changed()
 
         # Error banner (hidden by default)
         self._error_lbl = QLabel()
@@ -397,6 +406,12 @@ class MainWindow(QMainWindow):
             item = self._results_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
+
+    def _on_base_changed(self) -> None:
+        base = self.get_base()
+        for i in range(self._list.count()):
+            item = self._list.item(i)
+            item.setHidden(item.data(Qt.ItemDataRole.UserRole) == base)
 
     def _select_all(self) -> None:
         for i in range(self._list.count()):

@@ -1,4 +1,7 @@
 # Currency Converter — supported currencies
+# Set the default "From" currency here (must be a valid code from this file).
+default: EUR
+
 # Add or remove entries here without recompiling the app.
 # All codes must be valid ISO 4217 codes supported by open.er-api.com
 # Full supported list: https://open.er-api.com/v6/latest/USD

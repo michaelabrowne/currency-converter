@@ -12,12 +12,13 @@ from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkRe
 _API_BASE = "https://open.er-api.com/v6/latest"
 
 
-def _load_currencies() -> list[tuple[str, str]]:
+def _load_currencies() -> tuple[list[tuple[str, str]], str]:
     """Locate and parse currencies.yaml, searching next to the executable first.
 
     Supports two sections:
       major_currencies — appear first, in YAML order
       currencies       — appended after, sorted alphabetically by name
+    Also reads the optional `default` key for the default From currency.
     """
     candidates = [
         Path(sys.argv[0]).parent / "currencies.yaml",  # compiled: next to binary
@@ -31,15 +32,19 @@ def _load_currencies() -> list[tuple[str, str]]:
             majors = list((data.get("major_currencies") or {}).items())
             rest   = sorted(
                 (data.get("currencies") or {}).items(),
-                key=lambda kv: kv[1],   # alphabetical by display name
+                key=lambda kv: kv[1],
             )
-            return majors + rest
+            currencies = majors + rest
+            default = str(data.get("default", currencies[0][0])).upper()
+            return currencies, default
     raise FileNotFoundError(
         "currencies.yaml not found. Expected it next to the application executable."
     )
 
 
-CURRENCIES: list[tuple[str, str]] = _load_currencies()
+CURRENCIES: list[tuple[str, str]]
+DEFAULT_CURRENCY: str
+CURRENCIES, DEFAULT_CURRENCY = _load_currencies()
 
 
 class ConversionResult:
