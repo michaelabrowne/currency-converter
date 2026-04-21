@@ -28,7 +28,7 @@ echo "==> Mounting disk image..."
 MOUNT_POINT=$(hdiutil attach "$DMG" -nobrowse -plist < /dev/null 2>/dev/null | \
   python3 -c "
 import sys, plistlib
-data = plistlib.load(sys.stdin.buffer)
+data = plistlib.loads(sys.stdin.buffer.read())
 mps = [e['mount-point'] for e in data.get('system-entities', []) if 'mount-point' in e]
 print(mps[0] if mps else '')
 ")
