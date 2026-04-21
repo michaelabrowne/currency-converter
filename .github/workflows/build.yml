@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write   # required to create GitHub Releases
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: Build — ${{ matrix.platform }}
@@ -46,12 +49,12 @@ jobs:
             --output-filename=CurrencyConverter \
             --macos-app-name="Currency Converter" \
             --macos-app-version=${{ github.ref_name }} \
+            --assume-yes-for-downloads \
             main.py
 
       - name: Package macOS DMG
         if: runner.os == 'macOS'
         run: |
-          # Nuitka names the bundle after --output-filename
           APP_PATH="dist/CurrencyConverter.app"
           [ -d "$APP_PATH" ] || APP_PATH="dist/main.app"
           hdiutil create \
@@ -63,6 +66,7 @@ jobs:
       # ── Windows build ──────────────────────────────────────────────────────
       - name: Compile with Nuitka (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           uv run python -m nuitka `
             --standalone `
@@ -70,6 +74,7 @@ jobs:
             --enable-plugin=pyside6 `
             --output-dir=dist `
             --output-filename=CurrencyConverter `
+            --assume-yes-for-downloads `
             main.py
 
       - name: Package Windows ZIP
