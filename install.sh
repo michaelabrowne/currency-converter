@@ -24,7 +24,7 @@ DMG="$TMP/CurrencyConverter.dmg"
 curl -L --progress-bar "$DOWNLOAD_URL" -o "$DMG"
 
 echo "==> Mounting disk image..."
-MOUNT_POINT=$(hdiutil attach "$DMG" -nobrowse -quiet | awk 'END{print $NF}')
+MOUNT_POINT=$(hdiutil attach "$DMG" -nobrowse -quiet | grep '/Volumes' | cut -f3-)
 
 echo "==> Installing to $INSTALL_DIR..."
 rm -rf "$INSTALL_DIR/$APP_NAME.app"
