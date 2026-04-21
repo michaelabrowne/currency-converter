@@ -13,7 +13,12 @@ _API_BASE = "https://open.er-api.com/v6/latest"
 
 
 def _load_currencies() -> list[tuple[str, str]]:
-    """Locate and parse currencies.yaml, searching next to the executable first."""
+    """Locate and parse currencies.yaml, searching next to the executable first.
+
+    Supports two sections:
+      major_currencies — appear first, in YAML order
+      currencies       — appended after, sorted alphabetically by name
+    """
     candidates = [
         Path(sys.argv[0]).parent / "currencies.yaml",  # compiled: next to binary
         Path(__file__).parent / "currencies.yaml",     # dev: next to source
@@ -23,7 +28,12 @@ def _load_currencies() -> list[tuple[str, str]]:
         if path.exists():
             with open(path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-            return list(data["currencies"].items())
+            majors = list((data.get("major_currencies") or {}).items())
+            rest   = sorted(
+                (data.get("currencies") or {}).items(),
+                key=lambda kv: kv[1],   # alphabetical by display name
+            )
+            return majors + rest
     raise FileNotFoundError(
         "currencies.yaml not found. Expected it next to the application executable."
     )

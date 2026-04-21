@@ -1,10 +1,10 @@
 # Currency Converter — supported currencies
-# Add, remove, or reorder entries here without recompiling the app.
-# Codes must be valid ISO 4217 codes supported by open.er-api.com
-# Full list: https://open.er-api.com/v6/latest/USD
+# Add or remove entries here without recompiling the app.
+# All codes must be valid ISO 4217 codes supported by open.er-api.com
+# Full supported list: https://open.er-api.com/v6/latest/USD
 
-currencies:
-  # ── Major global ───────────────────────────────────────────────────────────
+# Major currencies appear first in the app, in the order listed here.
+major_currencies:
   USD: US Dollar
   EUR: Euro
   GBP: British Pound
@@ -12,38 +12,31 @@ currencies:
   CHF: Swiss Franc
   CNY: Chinese Yuan
 
-  # ── Americas ───────────────────────────────────────────────────────────────
-  CAD: Canadian Dollar
-  MXN: Mexican Peso
-  BRL: Brazilian Real
-
-  # ── Asia-Pacific ───────────────────────────────────────────────────────────
+# All other currencies — listed alphabetically by code.
+currencies:
+  AED: UAE Dirham
   AUD: Australian Dollar
-  HKD: Hong Kong Dollar
-  SGD: Singapore Dollar
-  KRW: South Korean Won
-  INR: Indian Rupee
-  THB: Thai Baht
-  VND: Vietnamese Dong
-  MYR: Malaysian Ringgit
-  PHP: Philippine Peso
-  IDR: Indonesian Rupiah
-
-  # ── European Union (non-euro members) ─────────────────────────────────────
+  BGN: Bulgarian Lev
+  BRL: Brazilian Real
+  CAD: Canadian Dollar
   CZK: Czech Koruna
+  DKK: Danish Krone
+  HKD: Hong Kong Dollar
   HUF: Hungarian Forint
+  IDR: Indonesian Rupiah
+  ILS: Israeli Shekel
+  INR: Indian Rupee
+  ISK: Icelandic Króna
+  KRW: South Korean Won
+  MXN: Mexican Peso
+  MYR: Malaysian Ringgit
+  NOK: Norwegian Krone
+  PHP: Philippine Peso
   PLN: Polish Zloty
   RON: Romanian Leu
   SEK: Swedish Krona
-  DKK: Danish Krone
-  BGN: Bulgarian Lev
-
-  # ── Other European ─────────────────────────────────────────────────────────
-  NOK: Norwegian Krone
-  ISK: Icelandic Króna
+  SGD: Singapore Dollar
+  THB: Thai Baht
   TRY: Turkish Lira
-
-  # ── Middle East & Africa ───────────────────────────────────────────────────
-  AED: UAE Dirham
+  VND: Vietnamese Dong
   ZAR: South African Rand
-  ILS: Israeli Shekel
