@@ -12,7 +12,7 @@ from view import MainWindow
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("Currency Converter")
-    QLocale.setDefault(QLocale.system())
+    QLocale.setDefault(QLocale.system())  # ensure system() is consistent with default
 
     model = CurrencyModel()
     view = MainWindow()

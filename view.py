@@ -154,10 +154,8 @@ QSplitter::handle { background: #2d3f55; }
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _fmt(value: float) -> str:
-    """Format a number using the system locale's separators.
-    QLocale() is called here (not at import time) so QApplication exists first.
-    """
-    loc = QLocale()
+    """Format a number using the system locale's separators."""
+    loc = QLocale.system()
     dec = loc.decimalPoint()
     grp = loc.groupSeparator()
 
@@ -311,7 +309,7 @@ class MainWindow(QMainWindow):
         amt_col.setSpacing(4)
         amt_col.addWidget(_lbl("Amount", "fieldlabel"))
         self._amount_spin = QDoubleSpinBox()
-        self._amount_spin.setLocale(QLocale(QLocale.Language.English))
+        self._amount_spin.setLocale(QLocale.system())
         self._amount_spin.setRange(0.0, 1_000_000_000.0)
         self._amount_spin.setValue(100.0)
         self._amount_spin.setDecimals(2)
