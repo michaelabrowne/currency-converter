@@ -1,0 +1,49 @@
+# Currency Converter — supported currencies
+# Add, remove, or reorder entries here without recompiling the app.
+# Codes must be valid ISO 4217 codes supported by open.er-api.com
+# Full list: https://open.er-api.com/v6/latest/USD
+
+currencies:
+  # ── Major global ───────────────────────────────────────────────────────────
+  USD: US Dollar
+  EUR: Euro
+  GBP: British Pound
+  JPY: Japanese Yen
+  CHF: Swiss Franc
+  CNY: Chinese Yuan
+
+  # ── Americas ───────────────────────────────────────────────────────────────
+  CAD: Canadian Dollar
+  MXN: Mexican Peso
+  BRL: Brazilian Real
+
+  # ── Asia-Pacific ───────────────────────────────────────────────────────────
+  AUD: Australian Dollar
+  HKD: Hong Kong Dollar
+  SGD: Singapore Dollar
+  KRW: South Korean Won
+  INR: Indian Rupee
+  THB: Thai Baht
+  VND: Vietnamese Dong
+  MYR: Malaysian Ringgit
+  PHP: Philippine Peso
+  IDR: Indonesian Rupiah
+
+  # ── European Union (non-euro members) ─────────────────────────────────────
+  CZK: Czech Koruna
+  HUF: Hungarian Forint
+  PLN: Polish Zloty
+  RON: Romanian Leu
+  SEK: Swedish Krona
+  DKK: Danish Krone
+  BGN: Bulgarian Lev
+
+  # ── Other European ─────────────────────────────────────────────────────────
+  NOK: Norwegian Krone
+  ISK: Icelandic Króna
+  TRY: Turkish Lira
+
+  # ── Middle East & Africa ───────────────────────────────────────────────────
+  AED: UAE Dirham
+  ZAR: South African Rand
+  ILS: Israeli Shekel

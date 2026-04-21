@@ -2,30 +2,34 @@
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
 
+import yaml
 from PySide6.QtCore import QObject, QUrl, Signal
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 
-CURRENCIES: list[tuple[str, str]] = [
-    ("USD", "US Dollar"),
-    ("EUR", "Euro"),
-    ("GBP", "British Pound"),
-    ("JPY", "Japanese Yen"),
-    ("CAD", "Canadian Dollar"),
-    ("AUD", "Australian Dollar"),
-    ("CHF", "Swiss Franc"),
-    ("CNY", "Chinese Yuan"),
-    ("INR", "Indian Rupee"),
-    ("MXN", "Mexican Peso"),
-    ("BRL", "Brazilian Real"),
-    ("KRW", "South Korean Won"),
-    ("VND", "Vietnamese Dong"),
-    ("SGD", "Singapore Dollar"),
-    ("HKD", "Hong Kong Dollar"),
-    ("THB", "Thai Baht"),
-]
-
 _API_BASE = "https://open.er-api.com/v6/latest"
+
+
+def _load_currencies() -> list[tuple[str, str]]:
+    """Locate and parse currencies.yaml, searching next to the executable first."""
+    candidates = [
+        Path(sys.argv[0]).parent / "currencies.yaml",  # compiled: next to binary
+        Path(__file__).parent / "currencies.yaml",     # dev: next to source
+        Path.cwd() / "currencies.yaml",
+    ]
+    for path in candidates:
+        if path.exists():
+            with open(path, encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            return list(data["currencies"].items())
+    raise FileNotFoundError(
+        "currencies.yaml not found. Expected it next to the application executable."
+    )
+
+
+CURRENCIES: list[tuple[str, str]] = _load_currencies()
 
 
 class ConversionResult:

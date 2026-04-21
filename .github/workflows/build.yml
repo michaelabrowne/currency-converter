@@ -51,6 +51,7 @@ jobs:
             --macos-app-name="Currency Converter" \
             --macos-app-version=${{ github.ref_name }} \
             --macos-app-icon=assets/icon.icns \
+            --include-data-files=currencies.yaml=currencies.yaml \
             --assume-yes-for-downloads \
             main.py
 
@@ -85,6 +86,7 @@ jobs:
             --output-dir=dist `
             --output-filename=CurrencyConverter `
             --windows-icon-from-ico=assets/icon.ico `
+            --include-data-files=currencies.yaml=currencies.yaml `
             --assume-yes-for-downloads `
             main.py
 
