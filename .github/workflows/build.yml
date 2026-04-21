@@ -1,0 +1,90 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: write   # required to create GitHub Releases
+
+jobs:
+  build:
+    name: Build — ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macOS
+          - os: windows-latest
+            platform: Windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv + Python
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      # ── macOS build ────────────────────────────────────────────────────────
+      - name: Compile with Nuitka (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          uv run python -m nuitka \
+            --standalone \
+            --macos-create-app-bundle \
+            --enable-plugin=pyside6 \
+            --output-dir=dist \
+            --output-filename=CurrencyConverter \
+            --macos-app-name="Currency Converter" \
+            --macos-app-version=${{ github.ref_name }} \
+            main.py
+
+      - name: Package macOS DMG
+        if: runner.os == 'macOS'
+        run: |
+          # Nuitka names the bundle after --output-filename
+          APP_PATH="dist/CurrencyConverter.app"
+          [ -d "$APP_PATH" ] || APP_PATH="dist/main.app"
+          hdiutil create \
+            -volname "Currency Converter" \
+            -srcfolder "$APP_PATH" \
+            -ov -format UDZO \
+            "CurrencyConverter-macOS-${{ github.ref_name }}.dmg"
+
+      # ── Windows build ──────────────────────────────────────────────────────
+      - name: Compile with Nuitka (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          uv run python -m nuitka `
+            --standalone `
+            --windows-console-mode=disable `
+            --enable-plugin=pyside6 `
+            --output-dir=dist `
+            --output-filename=CurrencyConverter `
+            main.py
+
+      - name: Package Windows ZIP
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $src = if (Test-Path "dist\CurrencyConverter.dist") { "dist\CurrencyConverter.dist" } else { "dist\main.dist" }
+          Compress-Archive -Path $src -DestinationPath "CurrencyConverter-Windows-${{ github.ref_name }}.zip"
+
+      # ── upload to release ─────────────────────────────────────────────────
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Currency Converter ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: |
+            CurrencyConverter-macOS-${{ github.ref_name }}.dmg
+            CurrencyConverter-Windows-${{ github.ref_name }}.zip
