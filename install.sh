@@ -20,28 +20,30 @@ fi
 echo "==> Downloading $(basename "$DOWNLOAD_URL")..."
 TMP=$(mktemp -d)
 DMG="$TMP/CurrencyConverter.dmg"
-curl -L --progress-bar "$DOWNLOAD_URL" -o "$DMG"
-
-# Detach any existing Currency Converter volumes to avoid macOS auto-numbering
-while IFS= read -r vol; do
-  hdiutil detach "$vol" -quiet 2>/dev/null || true
-done < <(find /Volumes -maxdepth 1 -name "Currency Converter*" -type d 2>/dev/null)
+# Redirect stdin from /dev/null — prevents curl consuming the bash script pipe
+curl -L --progress-bar "$DOWNLOAD_URL" -o "$DMG" < /dev/null
 
 echo "==> Mounting disk image..."
-hdiutil attach "$DMG" -nobrowse > /dev/null 2>&1
+# -plist gives structured output; < /dev/null prevents hdiutil consuming the script pipe
+MOUNT_POINT=$(hdiutil attach "$DMG" -nobrowse -plist < /dev/null 2>/dev/null | \
+  python3 -c "
+import sys, plistlib
+data = plistlib.load(sys.stdin.buffer)
+mps = [e['mount-point'] for e in data.get('system-entities', []) if 'mount-point' in e]
+print(mps[0] if mps else '')
+")
 
-# Find the mounted volume (handles auto-numbered names like "Currency Converter 2")
-MOUNT_POINT=$(find /Volumes -maxdepth 1 -name "Currency Converter*" -type d 2>/dev/null | sort | tail -1)
 if [[ -z "$MOUNT_POINT" ]]; then
-  echo "Error: could not find the mounted DMG volume."
+  echo "Error: could not mount the disk image."
+  rm -rf "$TMP"
   exit 1
 fi
 
-# Find the .app bundle inside (handles any bundle name)
 APP_BUNDLE=$(find "$MOUNT_POINT" -maxdepth 1 -name "*.app" -type d | head -1)
 if [[ -z "$APP_BUNDLE" ]]; then
   echo "Error: no .app bundle found inside the DMG."
-  hdiutil detach "$MOUNT_POINT" -quiet
+  hdiutil detach "$MOUNT_POINT" -quiet < /dev/null 2>/dev/null || true
+  rm -rf "$TMP"
   exit 1
 fi
 
@@ -54,7 +56,7 @@ echo "==> Removing quarantine flag..."
 xattr -cr "$INSTALL_DIR/$APP_NAME"
 
 echo "==> Cleaning up..."
-hdiutil detach "$MOUNT_POINT" -quiet
+hdiutil detach "$MOUNT_POINT" -quiet < /dev/null 2>/dev/null
 rm -rf "$TMP"
 
 echo ""
