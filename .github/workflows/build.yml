@@ -80,7 +80,7 @@ jobs:
         shell: pwsh
         run: |
           uv run python -m nuitka `
-            --standalone `
+            --onefile `
             --windows-console-mode=disable `
             --enable-plugin=pyside6 `
             --output-dir=dist `
@@ -94,8 +94,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $src = if (Test-Path "dist\CurrencyConverter.dist") { "dist\CurrencyConverter.dist" } else { "dist\main.dist" }
-          Compress-Archive -Path "$src\*" -DestinationPath "CurrencyConverter-Windows-${{ github.ref_name }}.zip"
+          Compress-Archive -Path "dist\CurrencyConverter.exe" -DestinationPath "CurrencyConverter-Windows-${{ github.ref_name }}.zip"
 
       # ── release ────────────────────────────────────────────────────────────
       - name: Upload to GitHub Release
